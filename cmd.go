@@ -30,7 +30,7 @@ const (
 )
 
 func init() {
-    CMD_EXITS = []string{"exit", "bye", "quit"}
+    CMD_EXITS = []string{"exit", "bye", "quit", "q"}
 }
 
 func New(client interface{}) Cmd {
