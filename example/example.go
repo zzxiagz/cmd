@@ -2,21 +2,40 @@ package main
 
 import (
     "../"
+    "fmt"
+    "strconv"
 )
 
-type MyCmd struct {
+type MyCmd struct{}
+
+func (this MyCmd) Help() {
+    fmt.Println("Available commands:")
+    fmt.Println("add go")
 }
 
 func (this MyCmd) Help_go() {
-    println("haha")
+    fmt.Println("go name")
 }
 
-func (this MyCmd) Help() {
-    println("any help here")
+func (this MyCmd) Do_go(name string) {
+    for _, r := range name {
+        fmt.Println(r)
+    }
+}
+
+func (this MyCmd) Help_add() {
+    fmt.Println("add a b")
+}
+
+func (this MyCmd) Do_add(a, b string) {
+    ai, _ := strconv.Atoi(a)
+    bi, _ := strconv.Atoi(b)
+    fmt.Printf("%s + %s = %d\n", a, b, ai+bi)
 }
 
 func main() {
-    my := new(MyCmd)
-    cmd := cmd.New(my)
+    cmd := cmd.New(new(MyCmd))
+    cmd.Prompt = "ExampleOfCmd "
+    cmd.Intro = "这是个cmd包的使用例子"
     cmd.Cmdloop()
 }

@@ -2,25 +2,33 @@ package cmd
 
 import (
     "bufio"
-    "os"
+    "errors"
     "fmt"
+    "io"
+    "os"
     "reflect"
     "strings"
 )
 
+var CMD_EXITS []string
+
 const (
+    EOL       = '\n'
+    SPACE     = " "
+    EMPTY_STR = ""
+    METHOD_DO = "Do_"
+
+    DEFAULT_PROMPT = "(Cmd) "
+
     CMD_HELP = "help"
-    CMD_EXIT = "exit"
-    CMD_BYE = "bye"
-    CMD_QUIT = "quit"
 )
 
-func New(child interface{}) Cmd {
-    this := Cmd{}
-    this.child = child
-    fmt.Println(child)
-    this.Prompt = "(Cmd) "
-    return this
+func init() {
+    CMD_EXITS = []string{"exit", "bye", "quit"}
+}
+
+func New(client interface{}) Cmd {
+    return Cmd{Prompt: DEFAULT_PROMPT, client: client}
 }
 
 func (this Cmd) bye() {
@@ -28,34 +36,95 @@ func (this Cmd) bye() {
     os.Exit(0)
 }
 
+func (this Cmd) intro() {
+    if this.Intro != "" {
+        fmt.Println(this.Intro)
+    }
+}
+
+func (this Cmd) isExit(cmd string) bool {
+    for _, c := range CMD_EXITS {
+        if c == cmd {
+            return true
+        }
+    }
+    return false
+}
+
+func (this Cmd) readInputs() (cmd string, args []string, err error) {
+    // echo prompt before read input
+    fmt.Print(this.Prompt)
+
+    reader := bufio.NewReader(os.Stdin)
+    in, e := reader.ReadBytes(EOL)
+    if e != nil {
+        if e != io.EOF {
+            panic(e)
+        }
+
+        // EOF
+        this.bye()
+    }
+
+    input := string(in[:len(in)-1]) // discard the EOL
+    if strings.TrimSpace(input) == EMPTY_STR {
+        err = errors.New("empty input")
+        return
+    }
+
+    inputs := strings.Split(input, SPACE)
+    if len(inputs) > 1 {
+        args = inputs[1:]
+    }
+    cmd = inputs[0]
+    return
+}
+
 func (this Cmd) Cmdloop() {
+    this.intro()
+
     for {
-        fmt.Print(this.Prompt)
-        reader := bufio.NewReader(os.Stdin)
-        in, e := reader.ReadBytes('\n')
-        if e != nil {
+        cmd, args, err := this.readInputs()
+        if err != nil {
+            continue
+        }
+
+        if this.isExit(cmd) {
             this.bye()
         }
 
-        inputs := strings.Split(string(in[:len(in)-1]), " ")
-        cmd := inputs[0]
-        if cmd == CMD_BYE || cmd == CMD_EXIT || cmd == CMD_QUIT {
-            this.bye()
-        }
-
+        var method string
         if cmd == CMD_HELP {
-            var method string
-            if len(inputs) == 2 {
-                method = "Help_" + inputs[1]
+            if len(args) >= 1 {
+                method = "Help_" + args[0]
+                args = args[1:]
             } else {
                 method = "Help"
             }
-            m := reflect.ValueOf(this.child).MethodByName(method)
-            if m == nil {
-                println("shit")
-            }
-            m.Call([]reflect.Value{})
+        } else {
+            method = METHOD_DO + cmd
         }
 
+        this.tryInvoke(this.client, method, args)
     }
+}
+
+func (this Cmd) notFound(method string) {
+    fmt.Printf("Invalid method: %s\n", method)
+}
+
+func (this Cmd) tryInvoke(i interface{}, methodName string, args []string) {
+    var method reflect.Value = reflect.ValueOf(i).MethodByName(methodName)
+    if !method.IsValid() {
+        this.notFound(methodName)
+        return
+    }
+
+    params := make([]reflect.Value, len(args))
+    for i, arg := range args {
+        params[i] = reflect.ValueOf(arg)
+    }
+
+    // we don't care about the return value
+    method.Call(params)
 }
