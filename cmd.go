@@ -15,7 +15,10 @@ type Cmd struct {
     client        interface{}
 }
 
-var CMD_EXITS []string
+var (
+    CMD_EXITS []string
+    CMD_HELPS []string
+)
 
 const (
     ERR_HINT = "ERR:"
@@ -25,12 +28,11 @@ const (
     METHOD_DO = "Do_"
 
     DEFAULT_PROMPT = "(Cmd) "
-
-    CMD_HELP = "help"
 )
 
 func init() {
     CMD_EXITS = []string{"exit", "bye", "quit", "q"}
+    CMD_HELPS = []string{"help", "h"}
 }
 
 func New(client interface{}) Cmd {
@@ -48,13 +50,21 @@ func (this Cmd) intro() {
     }
 }
 
-func (this Cmd) isExit(cmd string) bool {
-    for _, c := range CMD_EXITS {
+func (this Cmd) isCommand(cmd string, knownCmds []string) bool {
+    for _, c := range knownCmds {
         if c == cmd {
             return true
         }
     }
     return false
+}
+
+func (this Cmd) isExit(cmd string) bool {
+    return this.isCommand(cmd, CMD_EXITS)
+}
+
+func (this Cmd) isHellp(cmd string) bool {
+    return this.isCommand(cmd, CMD_HELPS)
 }
 
 func (this Cmd) readInputs() (cmd string, args []string, err error) {
@@ -113,7 +123,7 @@ func (this Cmd) Cmdloop() {
         }
 
         var method string
-        if cmd == CMD_HELP {
+        if this.isHellp(cmd) {
             if len(args) >= 1 {
                 method = "Help_" + args[0]
                 args = args[1:]
