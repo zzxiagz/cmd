@@ -80,7 +80,7 @@ func (this Cmd) readInputs() (cmd string, args []string, err error) {
 
     inputs := strings.Split(input, SPACE)
     if len(inputs) > 1 {
-        args : = make([]string, 0)
+        args = make([]string, 0)
         for _, in := range inputs {
             x := strings.TrimSpace(in)
             if x != "" {
