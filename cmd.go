@@ -10,6 +10,11 @@ import (
     "strings"
 )
 
+type Cmd struct {
+    Prompt, Intro string
+    client        interface{}
+}
+
 var CMD_EXITS []string
 
 const (

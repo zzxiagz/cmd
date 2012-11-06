@@ -35,7 +35,7 @@ func (this MyCmd) Do_add(a, b string) {
 
 func main() {
     cmd := cmd.New(new(MyCmd))
-    cmd.Prompt = "ExampleOfCmd "
+    cmd.Prompt = "(ExampleOfCmd) "
     cmd.Intro = "这是个cmd包的使用例子"
     cmd.Cmdloop()
 }
