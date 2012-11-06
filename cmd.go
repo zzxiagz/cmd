@@ -18,6 +18,7 @@ type Cmd struct {
 var CMD_EXITS []string
 
 const (
+    ERR_HINT = "ERR:"
     EOL       = '\n'
     SPACE     = " "
     EMPTY_STR = ""
@@ -86,6 +87,13 @@ func (this Cmd) readInputs() (cmd string, args []string, err error) {
 }
 
 func (this Cmd) Cmdloop() {
+    defer func() {
+        if r := recover(); r != nil {
+            fmt.Println(ERR_HINT, r)
+            this.Cmdloop()
+        }
+    }()
+
     this.intro()
 
     for {
