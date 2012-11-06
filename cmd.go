@@ -139,7 +139,7 @@ func (this Cmd) Cmdloop() {
 }
 
 func (this Cmd) notFound(method string) {
-    fmt.Printf("Invalid method: %s\n", method)
+    fmt.Printf("Invalid command: %s\n", method)
 }
 
 func (this Cmd) tryInvoke(i interface{}, methodName string, args []string) {
