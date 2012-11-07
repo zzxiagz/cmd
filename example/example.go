@@ -9,8 +9,7 @@ import (
 type MyCmd struct{}
 
 func (this MyCmd) Help() {
-    fmt.Println("Available commands:")
-    fmt.Println("add go")
+    fmt.Println("Welcome")
 }
 
 func (this MyCmd) Help_go() {

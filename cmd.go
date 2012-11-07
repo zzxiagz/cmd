@@ -18,6 +18,7 @@ type Cmd struct {
 var (
     CMD_EXITS []string
     CMD_HELPS []string
+    CMD_LISTS []string
 )
 
 const (
@@ -33,6 +34,7 @@ const (
 func init() {
     CMD_EXITS = []string{"exit", "bye", "quit", "q"}
     CMD_HELPS = []string{"help", "h"}
+    CMD_LISTS = []string{"list", "l"}
 }
 
 func New(client interface{}) Cmd {
@@ -63,8 +65,12 @@ func (this Cmd) isExit(cmd string) bool {
     return this.isCommand(cmd, CMD_EXITS)
 }
 
-func (this Cmd) isHelpCmd(cmd string) bool {
+func (this Cmd) isHelp(cmd string) bool {
     return this.isCommand(cmd, CMD_HELPS)
+}
+
+func (this Cmd) isList(cmd string) bool {
+    return this.isCommand(cmd, CMD_LISTS)
 }
 
 func (this Cmd) readInputs() (cmd string, args []string, err error) {
@@ -123,13 +129,16 @@ func (this Cmd) Cmdloop() {
         }
 
         var method string
-        if this.isHelpCmd(cmd) {
+        if this.isHelp(cmd) {
             if len(args) >= 1 {
                 method = "Help_" + args[0]
                 args = args[1:]
             } else {
                 method = "Help"
             }
+        } else if this.isList(cmd) {
+            this.listCommands(this.client)
+            continue
         } else {
             method = METHOD_DO + cmd
         }
@@ -140,6 +149,19 @@ func (this Cmd) Cmdloop() {
 
 func (this Cmd) notFound(method string) {
     fmt.Printf("Invalid command: %s\n", method)
+}
+
+func (this Cmd) listCommands(i interface{}) {
+    fmt.Println("Available commands:")
+
+    t := reflect.TypeOf(i)
+    for i:=0; i<t.NumMethod(); i++ {
+        methodName := t.Method(i).Name
+        if strings.HasPrefix(methodName, METHOD_DO) {
+            fmt.Printf("%s ", methodName[len(METHOD_DO):])
+        }
+    }
+    println()
 }
 
 func (this Cmd) tryInvoke(i interface{}, methodName string, args []string) {
