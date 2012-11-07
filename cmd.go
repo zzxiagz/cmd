@@ -34,7 +34,7 @@ const (
 func init() {
     CMD_EXITS = []string{"exit", "bye", "quit", "q"}
     CMD_HELPS = []string{"help", "h"}
-    CMD_LISTS = []string{"list", "l"}
+    CMD_LISTS = []string{"list", "ls", "l"}
 }
 
 func New(client interface{}) Cmd {
