@@ -63,7 +63,7 @@ func (this Cmd) isExit(cmd string) bool {
     return this.isCommand(cmd, CMD_EXITS)
 }
 
-func (this Cmd) isHellp(cmd string) bool {
+func (this Cmd) isHelpCmd(cmd string) bool {
     return this.isCommand(cmd, CMD_HELPS)
 }
 
@@ -123,7 +123,7 @@ func (this Cmd) Cmdloop() {
         }
 
         var method string
-        if this.isHellp(cmd) {
+        if this.isHelpCmd(cmd) {
             if len(args) >= 1 {
                 method = "Help_" + args[0]
                 args = args[1:]
