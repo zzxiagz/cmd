@@ -99,6 +99,7 @@ func (this Cmd) readInputs() (cmd string, args []string, err error) {
         args = make([]string, 0)
         for _, in := range inputs[1:] {
             x := strings.TrimSpace(in)
+            x = strings.Trim(x, "'")
             if x != "" {
                 args = append(args, x)
             }
