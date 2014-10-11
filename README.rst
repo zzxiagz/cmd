@@ -2,19 +2,16 @@
 cmd
 ==============
 
-:Author: Gao Peng <funky.gao@gmail.com>
-:Description: python's cmd package in golang.
-:Revision: $Id$
+golang 版本的 cmd.py
 
-.. contents:: Table Of Contents
-.. section-numbering::
+用两个现有库拼装：
+https://github.com/peterh/liner
+https://github.com/funkygao/cmd
+
 
 Usage
 =====
-see example/
 
 TODO
 ====
-- readline
-
-- tab autocomplete
+- 使用 shlex
