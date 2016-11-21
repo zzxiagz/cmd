@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/flynn/go-shlex"
 	"github.com/peterh/liner"
 )
 
@@ -112,8 +113,7 @@ func (this *Cmd) parseLine() (cmd string, args []string, err error) {
 		return
 	}
 
-	// TODO: Use posix command line param parser.
-	inputs := strings.Split(input, SPACE_STR)
+	inputs, err := shlex.Split(input)
 	if len(inputs) > 1 {
 		args = make([]string, 0)
 		for _, in := range inputs[1:] {
