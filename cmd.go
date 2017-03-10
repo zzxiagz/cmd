@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/flynn/go-shlex"
@@ -190,16 +191,66 @@ func (this *Cmd) listCommands(i interface{}) {
 	println()
 }
 
+func stringToValue(str string, t reflect.Type) (reflect.Value, error) {
+	switch t.Kind() {
+	case reflect.Bool:
+		v, err := strconv.ParseBool(str)
+		if err != nil {
+			return reflect.Value{}, err
+		} else {
+			return reflect.ValueOf(v), nil
+		}
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		v, err := strconv.ParseInt(str, 10, 0)
+		if err != nil {
+			return reflect.Value{}, err
+		} else {
+			return reflect.ValueOf(v).Convert(t), nil
+		}
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		v, err := strconv.ParseUint(str, 10, 0)
+		if err != nil {
+			return reflect.Value{}, err
+		} else {
+			return reflect.ValueOf(v).Convert(t), nil
+		}
+	case reflect.Float32, reflect.Float64:
+		v, err := strconv.ParseFloat(str, 0)
+		if err != nil {
+			return reflect.Value{}, err
+		} else {
+			return reflect.ValueOf(v).Convert(t), nil
+		}
+	case reflect.String:
+		return reflect.ValueOf(str), nil
+	}
+	return reflect.Value{}, errors.New("no support type.")
+}
+
 func (this *Cmd) tryInvoke(i interface{}, methodName string, args []string) {
 	method := reflect.ValueOf(i).MethodByName(methodName)
 	if !method.IsValid() {
 		this.notFound(methodName)
 		return
 	}
+	t := method.Type()
+
+	paramNum := t.NumIn()
+	if len(args) != paramNum {
+		fmt.Printf("%s need params num %d.", methodName, paramNum)
+		return
+	}
 
 	params := make([]reflect.Value, len(args))
-	for i, arg := range args {
-		params[i] = reflect.ValueOf(arg)
+	for i := 0; i < paramNum; i++ {
+		inT := t.In(i)
+		v, err := stringToValue(args[i], inT)
+		if err != nil {
+			fmt.Printf("%s param %d need type %v", methodName, i, inT.Name())
+			return
+		}
+		params[i] = v
+
 	}
 
 	method.Call(params)
