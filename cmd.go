@@ -223,8 +223,9 @@ func stringToValue(str string, t reflect.Type) (reflect.Value, error) {
 		}
 	case reflect.String:
 		return reflect.ValueOf(str), nil
+	default:
+		return reflect.ValueOf(str), nil
 	}
-	return reflect.Value{}, errors.New("no support type.")
 }
 
 func (this *Cmd) tryInvoke(i interface{}, methodName string, args []string) {
@@ -235,21 +236,36 @@ func (this *Cmd) tryInvoke(i interface{}, methodName string, args []string) {
 	}
 	t := method.Type()
 
-	paramNum := t.NumIn()
-	if len(args) != paramNum {
-		fmt.Printf("%s need params num %d.", methodName, paramNum)
+	if len(args) < t.NumIn() {
+		fmt.Printf("param num < %d", t.NumIn())
 		return
 	}
 
-	params := make([]reflect.Value, len(args))
-	for i := 0; i < paramNum; i++ {
-		inT := t.In(i)
-		v, err := stringToValue(args[i], inT)
-		if err != nil {
-			fmt.Printf("%s param %d need type %v", methodName, i, inT.Name())
-			return
+	params := make([]reflect.Value, 0, len(args))
+	argsIndex := 0
+	paramIndex := 0
+	for ; paramIndex < t.NumIn(); paramIndex++ {
+		inT := t.In(paramIndex)
+		switch inT.Kind() {
+		case reflect.Slice:
+			elemT := inT.Elem()
+			for ; argsIndex < len(args); argsIndex++ {
+				v, err := stringToValue(args[argsIndex], elemT)
+				if err != nil {
+					fmt.Printf("%s param %d need type %v", methodName, argsIndex, elemT.Name())
+					return
+				}
+				params = append(params, v)
+			}
+		default:
+			v, err := stringToValue(args[argsIndex], inT)
+			if err != nil {
+				fmt.Printf("%s param %d need type %v", methodName, i, inT.Name())
+				return
+			}
+			params = append(params, v)
+			argsIndex++
 		}
-		params[i] = v
 
 	}
 
